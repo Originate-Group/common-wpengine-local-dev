@@ -1,0 +1,157 @@
+# WP Engine Local Development Configuration
+# This file defines your local WordPress development environment
+
+# ============================================
+# Configuration Mode
+# ============================================
+# standalone: All config in this file (use this for now)
+# api: Fetch config from central platform API (future)
+mode: standalone
+
+# ============================================
+# Client/Project Information
+# ============================================
+client:
+  # Unique identifier (used for container names, no spaces/special chars)
+  id: my-client
+
+  # Human-readable name
+  name: "My Client"
+
+  # Project name (used as prefix for containers)
+  project_name: myclient
+
+# ============================================
+# WP Engine Configuration
+# ============================================
+wpengine:
+  # WP Engine environment name (e.g., mysite, mysitedev, mysitestage)
+  environment: mysitedev
+
+  # SSH connection details
+  ssh_user: mysitedev
+  ssh_host: mysitedev.ssh.wpengine.net
+  ssh_key: ~/.ssh/wpengine_deploy
+
+  # WP Engine site path (usually sites/{environment})
+  site_path: sites/mysitedev
+
+# ============================================
+# Local Development Ports
+# ============================================
+# IMPORTANT: Ports must be unique across all your local projects!
+# If you have multiple WP Engine projects running simultaneously,
+# each must use different ports.
+#
+# Recommended port ranges:
+# - Project 1: 8000, 8001, 3306
+# - Project 2: 8010, 8011, 3316
+# - Project 3: 8020, 8021, 3326
+# etc.
+#
+# The setup script can auto-assign ports if you leave these empty.
+local:
+  ports:
+    # WordPress site (default: 8000)
+    wordpress: 8000
+
+    # phpMyAdmin web interface (default: 8001)
+    phpmyadmin: 8001
+
+    # MySQL database (default: 3306)
+    mysql: 3306
+
+  # Site URL for WordPress (usually http://localhost:{wordpress_port})
+  site_url: http://localhost:8000
+
+  # WordPress debug mode
+  wp_debug: true
+
+# ============================================
+# Database Configuration
+# ============================================
+database:
+  # Database name
+  name: wordpress_db
+
+  # Database user
+  user: wordpress_user
+
+  # Database password (change this!)
+  password: wordpress_pass
+
+  # Root password (change this!)
+  root_password: root_pass
+
+# ============================================
+# Synchronization Options
+# ============================================
+sync:
+  # Sync database from WP Engine
+  database: true
+
+  # Sync plugins from WP Engine
+  plugins: true
+
+  # Sync uploads/media from WP Engine (can be LARGE!)
+  uploads: false
+
+  # Replace production URLs with local URLs during database import
+  url_replacement: true
+
+# ============================================
+# WordPress Plugins
+# ============================================
+plugins:
+  # Plugins to activate after sync (list plugin directory names)
+  activate:
+    - elementor
+    - uicore-animate
+    - uicore-elements
+    - uicore-framework
+
+  # Plugins to deactivate (for safety/compatibility)
+  deactivate:
+    - wordfence
+    - wp-rocket
+
+# ============================================
+# PHP Configuration
+# ============================================
+php:
+  # Memory limit
+  memory_limit: 256M
+
+  # Maximum file upload size
+  upload_max_filesize: 64M
+
+  # Maximum POST size
+  post_max_size: 64M
+
+  # Maximum execution time (seconds)
+  max_execution_time: 300
+
+# ============================================
+# Docker Configuration
+# ============================================
+docker:
+  # Restart policy (unless-stopped, always, no)
+  restart_policy: unless-stopped
+
+  # MySQL version
+  mysql_version: "8.0"
+
+  # WordPress version (latest, 6.4, 6.3, etc.)
+  wordpress_version: latest
+
+  # phpMyAdmin version
+  phpmyadmin_version: latest
+
+# ============================================
+# Platform API Configuration (Future Use)
+# ============================================
+# Uncomment and configure when using API mode
+# platform:
+#   api_url: https://devops.originate.com/api
+#   api_key: your-api-key-here
+#   client_id: fetched-from-api

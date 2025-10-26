@@ -1,0 +1,77 @@
+# Git
+.git
+.gitignore
+.gitattributes
+
+# Documentation
+*.md
+docs/
+README*
+LICENSE
+CHANGELOG*
+
+# IDE and Editor
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+Thumbs.db
+
+# Build and Dependencies
+node_modules/
+vendor/
+bower_components/
+.npm/
+.composer/
+
+# Logs
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Environment
+.env
+.env.*
+!.env.example
+
+# WordPress Specific
+wp-config.php
+.htaccess
+uploads/
+cache/
+backups/
+upgrade/
+updraft/
+
+# Database
+*.sql
+*.sql.gz
+*.sqlite
+
+# Docker
+.docker/
+docker/
+docker-compose*.yml
+Dockerfile*
+
+# CI/CD
+.github/
+.gitlab-ci.yml
+.travis.yml
+.circleci/
+
+# Testing
+tests/
+.phpunit.result.cache
+phpunit.xml
+
+# Temporary Files
+tmp/
+temp/
+*.tmp
+*.bak
+*.cache

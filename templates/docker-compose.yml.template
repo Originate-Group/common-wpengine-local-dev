@@ -1,0 +1,94 @@
+version: '3.8'
+
+services:
+  db:
+    image: mysql:${MYSQL_VERSION:-8.0}
+    container_name: ${PROJECT_NAME}-mysql
+    restart: ${RESTART_POLICY:-unless-stopped}
+    environment:
+      MYSQL_ROOT_PASSWORD: ${DB_ROOT_PASSWORD}
+      MYSQL_DATABASE: ${DB_NAME}
+      MYSQL_USER: ${DB_USER}
+      MYSQL_PASSWORD: ${DB_PASSWORD}
+    volumes:
+      - db_data:/var/lib/mysql
+      - ${DOCKER_PATH}/mysql-init:/docker-entrypoint-initdb.d
+    ports:
+      - "${MYSQL_PORT:-3306}:3306"
+    networks:
+      - ${PROJECT_NAME}-network
+
+  wordpress:
+    image: wordpress:${WORDPRESS_VERSION:-latest}
+    container_name: ${PROJECT_NAME}-wordpress
+    restart: ${RESTART_POLICY:-unless-stopped}
+    depends_on:
+      - db
+    environment:
+      WORDPRESS_DB_HOST: db:3306
+      WORDPRESS_DB_NAME: ${DB_NAME}
+      WORDPRESS_DB_USER: ${DB_USER}
+      WORDPRESS_DB_PASSWORD: ${DB_PASSWORD}
+      WORDPRESS_DEBUG: ${WP_DEBUG:-true}
+      WORDPRESS_CONFIG_EXTRA: |
+        define('WP_HOME', '${SITE_URL}');
+        define('WP_SITEURL', '${SITE_URL}');
+        define('WP_DEBUG_LOG', true);
+        define('WP_DEBUG_DISPLAY', false);
+    volumes:
+      - ${PROJECT_ROOT}/plugins:/var/www/html/wp-content/plugins
+      - ${PROJECT_ROOT}/themes:/var/www/html/wp-content/themes
+      - ${PROJECT_ROOT}/mu-plugins:/var/www/html/wp-content/mu-plugins
+      - ${PROJECT_ROOT}/uploads:/var/www/html/wp-content/uploads
+      - ${DOCKER_PATH}/php/php.ini:/usr/local/etc/php/conf.d/custom.ini:ro
+    ports:
+      - "${WORDPRESS_PORT:-8000}:80"
+    networks:
+      - ${PROJECT_NAME}-network
+
+  phpmyadmin:
+    image: phpmyadmin:${PHPMYADMIN_VERSION:-latest}
+    container_name: ${PROJECT_NAME}-phpmyadmin
+    restart: ${RESTART_POLICY:-unless-stopped}
+    depends_on:
+      - db
+    environment:
+      PMA_HOST: db
+      PMA_PORT: 3306
+      PMA_USER: ${DB_USER}
+      PMA_PASSWORD: ${DB_PASSWORD}
+      UPLOAD_LIMIT: 64M
+    ports:
+      - "${PHPMYADMIN_PORT:-8001}:80"
+    networks:
+      - ${PROJECT_NAME}-network
+
+  wpcli:
+    image: wordpress:cli
+    container_name: ${PROJECT_NAME}-wpcli
+    restart: "no"
+    depends_on:
+      - db
+      - wordpress
+    environment:
+      WORDPRESS_DB_HOST: db:3306
+      WORDPRESS_DB_NAME: ${DB_NAME}
+      WORDPRESS_DB_USER: ${DB_USER}
+      WORDPRESS_DB_PASSWORD: ${DB_PASSWORD}
+    volumes:
+      - ${PROJECT_ROOT}/plugins:/var/www/html/wp-content/plugins
+      - ${PROJECT_ROOT}/themes:/var/www/html/wp-content/themes
+      - ${PROJECT_ROOT}/mu-plugins:/var/www/html/wp-content/mu-plugins
+      - ${PROJECT_ROOT}/uploads:/var/www/html/wp-content/uploads
+    command: tail -f /dev/null
+    user: "33:33"
+    networks:
+      - ${PROJECT_NAME}-network
+
+networks:
+  ${PROJECT_NAME}-network:
+    driver: bridge
+
+volumes:
+  db_data:
+    name: ${PROJECT_NAME}-db-data

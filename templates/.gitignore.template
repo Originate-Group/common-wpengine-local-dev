@@ -1,0 +1,170 @@
+# WordPress Local Development .gitignore
+# Use this in your WP Engine project repositories
+
+# ============================================
+# Local Environment
+# ============================================
+.env
+.env.local
+local-config.yml
+docker-compose.yml
+docker/
+
+# ============================================
+# WordPress Core (if not tracking core)
+# ============================================
+# Uncomment if WordPress core is not tracked
+# /wp-admin/
+# /wp-includes/
+# /wp-*.php
+# /xmlrpc.php
+# /readme.html
+# /license.txt
+
+# ============================================
+# WordPress Configuration
+# ============================================
+wp-config.php
+.htaccess
+
+# ============================================
+# WordPress Content
+# ============================================
+# Uploads (media files)
+uploads/
+wp-content/uploads/
+
+# Cache
+cache/
+wp-content/cache/
+
+# Backups
+backups/
+wp-content/backups/
+
+# Upgrade
+upgrade/
+wp-content/upgrade/
+
+# UpdraftPlus backups
+updraft/
+wp-content/updraft/
+
+# ============================================
+# Plugins (Gitignore all except custom)
+# ============================================
+plugins/*
+!plugins/index.php
+# Uncomment lines below to track custom plugins
+# !plugins/my-custom-plugin/
+
+# ============================================
+# Must-Use Plugins (WP Engine System Files)
+# ============================================
+mu-plugins/mu-plugin.php
+mu-plugins/wpengine-common/
+mu-plugins/wpe-wp-sign-on-plugin/
+mu-plugins/mu-plugin/
+mu-plugins/slt-force-strong-passwords.php
+mu-plugins/stop-long-comments.php
+mu-plugins/force-strong-passwords/
+# Uncomment to track custom mu-plugins
+# !mu-plugins/my-custom-mu-plugin/
+
+# ============================================
+# Themes (Track your custom themes)
+# ============================================
+# Uncomment to ignore all themes except specific ones
+# themes/*
+# !themes/my-custom-theme/
+
+# ============================================
+# Database
+# ============================================
+*.sql
+*.sql.gz
+*.sqlite
+*.db
+
+# ============================================
+# Node.js / NPM
+# ============================================
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.npm/
+.yarn/
+package-lock.json
+yarn.lock
+
+# ============================================
+# Composer
+# ============================================
+vendor/
+composer.lock
+
+# ============================================
+# Build Artifacts
+# ============================================
+dist/
+build/
+*.min.js
+*.min.css
+*.map
+
+# ============================================
+# Logs
+# ============================================
+*.log
+logs/
+log/
+error_log
+debug.log
+wp-content/debug.log
+
+# ============================================
+# IDE and Editors
+# ============================================
+.vscode/
+.idea/
+*.sublime-project
+*.sublime-workspace
+.project
+.settings/
+*.tmproj
+*.swp
+*.swo
+*~
+
+# ============================================
+# OS Files
+# ============================================
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+Desktop.ini
+
+# ============================================
+# Temporary Files
+# ============================================
+tmp/
+temp/
+*.tmp
+*.bak
+*.cache
+*.old
+*~
+
+# ============================================
+# Security
+# ============================================
+.ssh/
+*.pem
+*.key
+credentials.json
+secrets.json

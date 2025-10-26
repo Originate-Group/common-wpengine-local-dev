@@ -1,0 +1,28 @@
+; Custom PHP Configuration for WordPress Development
+; This file will be mounted into the WordPress container
+
+; File Upload Settings
+upload_max_filesize = ${PHP_UPLOAD_MAX_FILESIZE:-64M}
+post_max_size = ${PHP_POST_MAX_SIZE:-64M}
+
+; Resource Limits
+memory_limit = ${PHP_MEMORY_LIMIT:-256M}
+max_execution_time = ${PHP_MAX_EXECUTION_TIME:-300}
+max_input_time = 300
+
+; Error Handling
+display_errors = Off
+display_startup_errors = Off
+log_errors = On
+error_log = /var/log/php_errors.log
+error_reporting = E_ALL
+
+; Session Settings
+session.gc_maxlifetime = 1440
+session.cookie_lifetime = 0
+
+; Performance
+opcache.enable = 1
+opcache.memory_consumption = 128
+opcache.max_accelerated_files = 10000
+opcache.revalidate_freq = 2
