@@ -166,6 +166,66 @@ if [[ -n "$PROJECT_NAME" ]]; then
     fi
 
     echo ""
+
+    # Step 2b: Remove Docker networks
+    echo -e "${BLUE}Step 2b: Removing Docker networks...${NC}"
+
+    NETWORKS=$(docker network ls --format '{{.Name}}' | grep "${PROJECT_NAME}" || echo "")
+    if [[ -n "$NETWORKS" ]]; then
+        while IFS= read -r network; do
+            echo -e "  Removing: ${network}"
+            docker network rm "$network" >/dev/null 2>&1 || true
+            echo -e "  ${GREEN}✓${NC} Removed: ${network}"
+        done <<< "$NETWORKS"
+    else
+        echo -e "  ${YELLOW}No networks found${NC}"
+    fi
+
+    echo ""
+
+    # Step 2c: Remove project Docker images
+    echo -e "${BLUE}Step 2c: Removing project Docker images...${NC}"
+
+    IMAGES=$(docker images --format '{{.Repository}}:{{.Tag}}' | grep "${PROJECT_NAME}" || echo "")
+    if [[ -n "$IMAGES" ]]; then
+        while IFS= read -r image; do
+            echo -e "  Removing: ${image}"
+            docker rmi -f "$image" >/dev/null 2>&1 || true
+            echo -e "  ${GREEN}✓${NC} Removed: ${image}"
+        done <<< "$IMAGES"
+    else
+        echo -e "  ${YELLOW}No project images found${NC}"
+    fi
+
+    echo ""
+
+    # Step 2d: Remove dangling images
+    echo -e "${BLUE}Step 2d: Removing dangling/orphaned images...${NC}"
+
+    DANGLING=$(docker images -f "dangling=true" -q | wc -l)
+    if [[ $DANGLING -gt 0 ]]; then
+        docker image prune -f >/dev/null 2>&1
+        echo -e "  ${GREEN}✓${NC} Removed $DANGLING dangling images"
+    else
+        echo -e "  ${YELLOW}No dangling images found${NC}"
+    fi
+
+    echo ""
+
+    # Step 2e: Offer to clean build cache
+    echo -e "${BLUE}Step 2e: Docker build cache cleanup${NC}"
+    read -p "$(echo -e ${YELLOW}Clean Docker build cache? This will speed up future builds. [y/N]: ${NC})" -n 1 -r
+    echo
+
+    if [[ $REPLY =~ ^[Yy]$ ]]; then
+        echo -e "  Cleaning build cache..."
+        docker builder prune -f >/dev/null 2>&1
+        echo -e "  ${GREEN}✓${NC} Build cache cleaned"
+    else
+        echo -e "  ${YELLOW}Skipped build cache cleanup${NC}"
+    fi
+
+    echo ""
 else
     echo -e "${YELLOW}Skipping Docker cleanup (project name not found)${NC}"
     echo ""
