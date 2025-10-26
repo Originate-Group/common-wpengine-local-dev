@@ -147,6 +147,9 @@ echo ""
 # Step 4: Generate configuration files
 echo -e "${BLUE}Step 4: Generating configuration files...${NC}"
 
+# Export WPENGINE_LOCAL_DIR for docker-compose template
+export WPENGINE_LOCAL_DIR
+
 # Generate docker-compose.yml from template
 if [[ -f "${TEMPLATES_DIR}/docker-compose.yml.template" ]]; then
     envsubst < "${TEMPLATES_DIR}/docker-compose.yml.template" > docker-compose.yml

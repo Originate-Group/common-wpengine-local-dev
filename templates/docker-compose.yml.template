@@ -19,7 +19,10 @@ services:
       - ${PROJECT_NAME}-network
 
   wordpress:
-    image: wordpress:${WORDPRESS_VERSION:-latest}
+    build:
+      context: ${WPENGINE_LOCAL_DIR:-${PROJECT_ROOT}/.wpengine-local}
+      dockerfile: docker/Dockerfile.wpengine
+    image: ${PROJECT_NAME}-wpengine:latest
     container_name: ${PROJECT_NAME}-wordpress
     restart: ${RESTART_POLICY:-unless-stopped}
     depends_on:
@@ -64,7 +67,7 @@ services:
       - ${PROJECT_NAME}-network
 
   wpcli:
-    image: wordpress:cli
+    image: ${PROJECT_NAME}-wpengine:latest
     container_name: ${PROJECT_NAME}-wpcli
     restart: "no"
     depends_on:

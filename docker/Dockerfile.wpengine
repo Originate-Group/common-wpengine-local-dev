@@ -1,0 +1,134 @@
+# WP Engine Environment Mirror
+# Matches WP Engine's production PHP 8.4.13 environment
+#
+# Based on analysis of WP Engine GKE container:
+# - PHP: 8.4.13 (Zend PHP)
+# - MySQL: 8.0.43
+# - WP-CLI: 2.12.0
+# - OS: Ubuntu 22.04 on Google Kubernetes Engine
+
+FROM php:8.4-apache
+
+LABEL maintainer="Originate Group DevOps"
+LABEL description="WP Engine environment mirror for local WordPress development"
+LABEL version="1.0.0"
+
+# Install system dependencies matching WP Engine's Ubuntu 22.04 environment
+RUN apt-get update && apt-get install -y \
+    # Core utilities
+    git \
+    unzip \
+    libzip-dev \
+    zip \
+    curl \
+    wget \
+    # Image processing (GD, Imagick)
+    libpng-dev \
+    libjpeg-dev \
+    libfreetype6-dev \
+    libwebp-dev \
+    libmagickwand-dev \
+    # XML processing
+    libxml2-dev \
+    libxslt1-dev \
+    # Internationalization
+    libicu-dev \
+    # SSH and networking
+    libssh2-1-dev \
+    # Memcached
+    libmemcached-dev \
+    zlib1g-dev \
+    # GMP (GNU Multiple Precision)
+    libgmp-dev \
+    # MySQL client (8.0.43 to match WP Engine)
+    default-mysql-client \
+    # Cleanup
+    && rm -rf /var/lib/apt/lists/*
+
+# Configure and install PHP extensions matching WP Engine's php -m output
+RUN docker-php-ext-configure gd \
+        --with-freetype \
+        --with-jpeg \
+        --with-webp \
+    && docker-php-ext-install -j$(nproc) \
+        bcmath \
+        calendar \
+        exif \
+        gd \
+        gettext \
+        gmp \
+        intl \
+        mysqli \
+        pdo_mysql \
+        pcntl \
+        soap \
+        sockets \
+        shmop \
+        sysvmsg \
+        sysvsem \
+        sysvshm \
+        xsl \
+        zip \
+        opcache
+
+# Install PECL extensions matching WP Engine
+RUN pecl install \
+        imagick \
+        memcached \
+        igbinary \
+        msgpack \
+        ssh2-1.4 \
+    && docker-php-ext-enable \
+        imagick \
+        memcached \
+        igbinary \
+        msgpack \
+        ssh2
+
+# Install WP-CLI 2.12.0 (exact version matching WP Engine)
+RUN curl -o /tmp/wp-cli.phar https://github.com/wp-cli/wp-cli/releases/download/v2.12.0/wp-cli-2.12.0.phar \
+    && chmod +x /tmp/wp-cli.phar \
+    && mv /tmp/wp-cli.phar /usr/local/bin/wp \
+    && wp --info --allow-root
+
+# Configure PHP settings to match WP Engine defaults
+# These will be overridden by mounted php.ini at runtime
+RUN { \
+        echo 'memory_limit = 256M'; \
+        echo 'upload_max_filesize = 64M'; \
+        echo 'post_max_size = 64M'; \
+        echo 'max_execution_time = 300'; \
+        echo 'max_input_time = 300'; \
+        # OPcache settings (WP Engine has this enabled)
+        echo 'opcache.enable = 1'; \
+        echo 'opcache.memory_consumption = 128'; \
+        echo 'opcache.interned_strings_buffer = 8'; \
+        echo 'opcache.max_accelerated_files = 10000'; \
+        echo 'opcache.revalidate_freq = 2'; \
+        echo 'opcache.fast_shutdown = 1'; \
+        # Error handling
+        echo 'display_errors = Off'; \
+        echo 'display_startup_errors = Off'; \
+        echo 'log_errors = On'; \
+        echo 'error_log = /var/log/php_errors.log'; \
+    } > /usr/local/etc/php/conf.d/wpengine-defaults.ini
+
+# Enable Apache modules that WP Engine uses
+RUN a2enmod rewrite expires headers
+
+# Create directories matching WP Engine structure
+RUN mkdir -p /sites /nas /memcached \
+    && chown -R www-data:www-data /sites /nas /memcached
+
+# Set working directory
+WORKDIR /var/www/html
+
+# Expose port 80
+EXPOSE 80
+
+# Health check
+HEALTHCHECK --interval=30s --timeout=3s --start-period=40s --retries=3 \
+    CMD curl -f http://localhost/ || exit 1
+
+# Use Apache as the default command
+CMD ["apache2-foreground"]
