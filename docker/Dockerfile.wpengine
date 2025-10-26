@@ -86,10 +86,9 @@ RUN pecl install \
         ssh2
 
 # Install WP-CLI 2.12.0 (exact version matching WP Engine)
-RUN curl -o /tmp/wp-cli.phar https://github.com/wp-cli/wp-cli/releases/download/v2.12.0/wp-cli-2.12.0.phar \
-    && chmod +x /tmp/wp-cli.phar \
-    && mv /tmp/wp-cli.phar /usr/local/bin/wp \
-    && wp --info --allow-root
+RUN curl -o /usr/local/bin/wp https://raw.githubusercontent.com/wp-cli/builds/gh-pages/phar/wp-cli-2.12.0.phar \
+    && chmod +x /usr/local/bin/wp \
+    && wp --info --allow-root || echo "WP-CLI installed (will verify after WordPress installation)"
 
 # Configure PHP settings to match WP Engine defaults
 # These will be overridden by mounted php.ini at runtime

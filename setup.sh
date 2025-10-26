@@ -220,8 +220,36 @@ fi
 
 echo ""
 
-# Step 6: Sync data from WP Engine
-echo -e "${BLUE}Step 6: Sync data from WP Engine${NC}"
+# Step 6: Install WordPress Core
+echo -e "${BLUE}Step 6: Installing WordPress Core${NC}"
+
+# Check if WordPress core files exist
+if ! docker exec "${PROJECT_NAME}-wordpress" test -f /var/www/html/wp-load.php 2>/dev/null; then
+    echo -e "${YELLOW}WordPress core not found, downloading...${NC}"
+
+    # Download and extract WordPress
+    docker exec "${PROJECT_NAME}-wordpress" bash -c "
+        cd /var/www/html && \
+        wget -q https://wordpress.org/latest.tar.gz && \
+        tar -xzf latest.tar.gz --strip-components=1 && \
+        rm latest.tar.gz && \
+        chown -R www-data:www-data /var/www/html
+    "
+
+    if [[ $? -eq 0 ]]; then
+        echo -e "${GREEN}✓ WordPress core installed${NC}"
+    else
+        echo -e "${RED}✗ Failed to install WordPress core${NC}"
+        exit 1
+    fi
+else
+    echo -e "${GREEN}✓ WordPress core already installed${NC}"
+fi
+
+echo ""
+
+# Step 7: Sync data from WP Engine
+echo -e "${BLUE}Step 7: Sync data from WP Engine${NC}"
 echo ""
 
 # Show sync configuration
