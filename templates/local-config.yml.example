@@ -138,8 +138,8 @@ docker:
   # Restart policy (unless-stopped, always, no)
   restart_policy: unless-stopped
 
-  # MySQL version
-  mysql_version: "8.0"
+  # MySQL version (8.0, 8.4, 5.7, etc.) - DO NOT USE QUOTES
+  mysql_version: 8.0
 
   # WordPress version (latest, 6.4, 6.3, etc.)
   wordpress_version: latest
