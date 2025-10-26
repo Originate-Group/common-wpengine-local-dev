@@ -55,8 +55,8 @@ echo -e "  Source: ${WPENGINE_SSH_USER}@${WPENGINE_SSH_HOST}:${WPENGINE_SITE_PAT
 echo -e "  Destination: ${TEMP_DIR}/"
 echo ""
 
-# Download plugins via rsync
-rsync -avz --progress \
+# Download plugins via rsync (exclude index.php - we'll preserve local one)
+rsync -avz --progress --exclude='index.php' \
     -e "ssh -i ${WPENGINE_SSH_KEY} -o StrictHostKeyChecking=no" \
     "${WPENGINE_SSH_USER}@${WPENGINE_SSH_HOST}:${WPENGINE_SITE_PATH}/wp-content/plugins/" \
     "${TEMP_DIR}/"
@@ -83,21 +83,18 @@ if [[ -f "plugins/index.php" ]]; then
     cp "plugins/index.php" "${TEMP_DIR}/index.php"
 fi
 
-# Remove old plugins (except those in .gitignore exclusions)
-if [[ -d "plugins" ]]; then
-    echo -e "${YELLOW}Backing up existing plugins...${NC}"
-    BACKUP_DIR="/tmp/${PROJECT_NAME}-plugins-backup-$(date +%Y%m%d-%H%M%S)"
-    mv plugins "$BACKUP_DIR"
-    echo -e "${GREEN}✓ Backup created: ${BACKUP_DIR}${NC}"
-fi
+# Remove old plugins (except index.php) - use sudo for Docker permissions
+echo -e "${YELLOW}Removing old plugins...${NC}"
+sudo find plugins/ -mindepth 1 ! -name 'index.php' -exec rm -rf {} + 2>/dev/null || true
+echo -e "${GREEN}✓ Old plugins removed${NC}"
 
-# Copy downloaded plugins
-mkdir -p plugins
-cp -r "${TEMP_DIR}/"* plugins/
+# Copy downloaded plugins - use sudo for Docker permissions
+echo -e "${YELLOW}Copying new plugins...${NC}"
+sudo cp -r "${TEMP_DIR}/"* plugins/
 
 # Ensure index.php exists
 if [[ ! -f "plugins/index.php" ]]; then
-    echo "<?php\n// Silence is golden." > plugins/index.php
+    echo -e "<?php\n// Silence is golden." | sudo tee plugins/index.php > /dev/null
 fi
 
 echo -e "${GREEN}✓ Plugins copied to project${NC}"
@@ -107,8 +104,9 @@ echo ""
 # Step 3: Fix permissions
 echo -e "${BLUE}Step 3: Fixing permissions...${NC}"
 
-chmod -R 755 plugins/
-find plugins/ -type f -exec chmod 644 {} \;
+# Use sudo for Docker-created files
+sudo chmod -R 755 plugins/
+sudo find plugins/ -type f -exec chmod 644 {} \;
 
 echo -e "${GREEN}✓ Permissions fixed${NC}"
 
