@@ -78,35 +78,38 @@ echo ""
 # Step 2: Copy to plugins directory
 echo -e "${BLUE}Step 2: Copying plugins to project...${NC}"
 
-# Keep index.php if it exists
-if [[ -f "plugins/index.php" ]]; then
-    cp "plugins/index.php" "${TEMP_DIR}/index.php"
-fi
+# Step 2a: Copy plugins into container using Docker (no sudo needed!)
+echo -e "${YELLOW}Copying plugins into WordPress container...${NC}"
 
-# Remove old plugins (except index.php) - use sudo for Docker permissions
-echo -e "${YELLOW}Removing old plugins...${NC}"
-sudo find plugins/ -mindepth 1 ! -name 'index.php' -exec rm -rf {} + 2>/dev/null || true
-echo -e "${GREEN}✓ Old plugins removed${NC}"
+# Remove old plugins inside container (except index.php)
+docker exec "${PROJECT_NAME}-wordpress" bash -c "
+    cd /var/www/html/wp-content/plugins && \
+    find . -mindepth 1 ! -name 'index.php' -exec rm -rf {} + 2>/dev/null || true
+"
 
-# Copy downloaded plugins - use sudo for Docker permissions
-echo -e "${YELLOW}Copying new plugins...${NC}"
-sudo cp -r "${TEMP_DIR}/"* plugins/
+# Copy downloaded plugins into container using docker cp
+docker cp "${TEMP_DIR}/." "${PROJECT_NAME}-wordpress:/var/www/html/wp-content/plugins/"
 
-# Ensure index.php exists
-if [[ ! -f "plugins/index.php" ]]; then
-    echo -e "<?php\n// Silence is golden." | sudo tee plugins/index.php > /dev/null
-fi
+# Ensure index.php exists inside container
+docker exec "${PROJECT_NAME}-wordpress" bash -c "
+    if [[ ! -f /var/www/html/wp-content/plugins/index.php ]]; then
+        echo -e '<?php\n// Silence is golden.' > /var/www/html/wp-content/plugins/index.php
+    fi
+"
 
-echo -e "${GREEN}✓ Plugins copied to project${NC}"
+echo -e "${GREEN}✓ Plugins copied to WordPress container${NC}"
 
 echo ""
 
-# Step 3: Fix permissions
+# Step 3: Fix permissions inside container
 echo -e "${BLUE}Step 3: Fixing permissions...${NC}"
 
-# Use sudo for Docker-created files
-sudo chmod -R 755 plugins/
-sudo find plugins/ -type f -exec chmod 644 {} \;
+# Set correct ownership and permissions inside container
+docker exec "${PROJECT_NAME}-wordpress" bash -c "
+    chown -R www-data:www-data /var/www/html/wp-content/plugins && \
+    chmod -R 755 /var/www/html/wp-content/plugins && \
+    find /var/www/html/wp-content/plugins -type f -exec chmod 644 {} \;
+"
 
 echo -e "${GREEN}✓ Permissions fixed${NC}"
 
