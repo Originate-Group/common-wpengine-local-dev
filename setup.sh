@@ -206,6 +206,8 @@ WAIT_COUNT=0
 # Add initial delay for MySQL initialization
 sleep 2
 
+# Temporarily disable set -e for the wait loop (MySQL pings will fail until ready)
+set +e
 while [[ $WAIT_COUNT -lt $MAX_WAIT ]]; do
     if docker exec "${PROJECT_NAME}-mysql" mysqladmin ping -h localhost -u root -p"${DB_ROOT_PASSWORD}" &> /dev/null; then
         echo -e "${GREEN}✓ MySQL is ready${NC}"
@@ -215,6 +217,7 @@ while [[ $WAIT_COUNT -lt $MAX_WAIT ]]; do
     echo -n "."
     sleep 1
 done
+set -e  # Re-enable exit-on-error
 
 if [[ $WAIT_COUNT -ge $MAX_WAIT ]]; then
     echo -e "${RED}✗ MySQL failed to start (waited ${MAX_WAIT} seconds)${NC}"
