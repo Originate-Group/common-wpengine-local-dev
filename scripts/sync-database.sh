@@ -217,12 +217,18 @@ echo -e "${GREEN}✓ Test admin user created (testAdmin / adminADMIN)${NC}"
 echo ""
 
 # Step 8: Cleanup backup file (optional)
-read -p "$(echo -e ${YELLOW}Delete local backup file? [y/N]: ${NC})" -n 1 -r
-echo
-if [[ $REPLY =~ ^[Yy]$ ]]; then
-    rm "$BACKUP_FILE"
-    echo -e "${GREEN}✓ Backup file deleted${NC}"
+# Skip interactive prompt if running from setup.sh (non-interactive mode)
+if [[ -t 0 ]] && [[ -z "${SETUP_NON_INTERACTIVE}" ]]; then
+    read -p "$(echo -e ${YELLOW}Delete local backup file? [y/N]: ${NC})" -n 1 -r
+    echo
+    if [[ $REPLY =~ ^[Yy]$ ]]; then
+        rm "$BACKUP_FILE"
+        echo -e "${GREEN}✓ Backup file deleted${NC}"
+    else
+        echo -e "${YELLOW}Backup file saved: ${BACKUP_FILE}${NC}"
+    fi
 else
+    # Non-interactive mode: keep backup file
     echo -e "${YELLOW}Backup file saved: ${BACKUP_FILE}${NC}"
 fi
 
