@@ -250,14 +250,16 @@ echo ""
 echo -e "${BLUE}Step 4: Cleaning plugins directory...${NC}"
 
 if [[ -d "plugins" ]]; then
-    # Remove everything except index.php and Git-tracked files
-    # Use sudo if needed for Docker-owned files
-    if ! find plugins -mindepth 1 ! -name 'index.php' ! -path '*/\.*' -exec rm -rf {} + 2>/dev/null; then
-        echo -e "  ${YELLOW}Need elevated permissions to remove Docker-owned files...${NC}"
-        sudo -n rm -rf plugins/* 2>/dev/null || sudo rm -rf plugins/*
+    # Fix ownership of Docker-created files using Docker itself
+    if ! rm -rf plugins/* 2>/dev/null; then
+        echo -e "  ${YELLOW}Fixing ownership of Docker-created files...${NC}"
+        docker run --rm -v "${PROJECT_ROOT}/plugins:/cleanup" alpine chown -R $(id -u):$(id -g) /cleanup 2>/dev/null || true
     fi
 
-    # Recreate index.php if it was removed
+    # Now remove everything
+    rm -rf plugins/*
+
+    # Recreate index.php
     if [[ ! -f "plugins/index.php" ]]; then
         echo "<?php" > plugins/index.php
         echo "// Silence is golden." >> plugins/index.php
@@ -274,11 +276,14 @@ echo ""
 echo -e "${BLUE}Step 5: Removing uploads directory...${NC}"
 
 if [[ -d "uploads" ]]; then
-    # Try normal removal first, use sudo if it fails (Docker-owned files)
+    # Fix ownership of Docker-created files using Docker itself
     if ! rm -rf uploads/ 2>/dev/null; then
-        echo -e "  ${YELLOW}Need elevated permissions to remove Docker-owned files...${NC}"
-        sudo -n rm -rf uploads/ 2>/dev/null || sudo rm -rf uploads/
+        echo -e "  ${YELLOW}Fixing ownership of Docker-created files...${NC}"
+        docker run --rm -v "${PROJECT_ROOT}/uploads:/cleanup" alpine chown -R $(id -u):$(id -g) /cleanup 2>/dev/null || true
     fi
+
+    # Now remove
+    rm -rf uploads/
 
     if [[ ! -d "uploads" ]]; then
         echo -e "  ${GREEN}✓${NC} Removed uploads/"
