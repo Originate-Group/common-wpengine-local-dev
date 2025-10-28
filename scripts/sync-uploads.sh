@@ -55,12 +55,16 @@ REMOTE_SIZE=$(ssh -i "$WPENGINE_SSH_KEY" -o StrictHostKeyChecking=no \
 echo -e "  Remote uploads size: ${YELLOW}${REMOTE_SIZE}${NC}"
 echo ""
 
-# Confirm before proceeding
-read -p "$(echo -e ${YELLOW}Proceed with download? [y/N]: ${NC})" -n 1 -r
-echo
-if [[ ! $REPLY =~ ^[Yy]$ ]]; then
-    echo -e "${YELLOW}Sync cancelled${NC}"
-    exit 0
+# Confirm before proceeding (skip if running non-interactively from setup)
+if [[ -t 0 ]] && [[ -z "${SETUP_NON_INTERACTIVE}" ]]; then
+    read -p "$(echo -e ${YELLOW}Proceed with download? [y/N]: ${NC})" -n 1 -r
+    echo
+    if [[ ! $REPLY =~ ^[Yy]$ ]]; then
+        echo -e "${YELLOW}Sync cancelled${NC}"
+        exit 0
+    fi
+else
+    echo -e "${YELLOW}Running in non-interactive mode, proceeding automatically...${NC}"
 fi
 
 echo ""
