@@ -316,6 +316,51 @@ fi
 
 echo ""
 
+# Step 5c: Clean untracked themes (preserve Git-tracked themes like uicore-pro)
+echo -e "${BLUE}Step 5c: Cleaning untracked themes...${NC}"
+
+if [[ -d "themes" ]]; then
+    # Get list of git-tracked files in themes/ (preserve these)
+    TRACKED_THEMES=$(git ls-files themes/ 2>/dev/null | cut -d'/' -f2 | sort -u)
+
+    # Fix ownership first if needed
+    if ! rm -f themes/index.php 2>/dev/null; then
+        echo -e "  ${YELLOW}Fixing ownership of Docker-created files...${NC}"
+        docker run --rm -v "${PROJECT_ROOT}/themes:/cleanup" alpine chown -R $(id -u):$(id -g) /cleanup 2>/dev/null || true
+    fi
+
+    # Remove untracked themes and index.php
+    REMOVED_COUNT=0
+    for theme_dir in themes/*/; do
+        if [[ -d "$theme_dir" ]]; then
+            THEME_NAME=$(basename "$theme_dir")
+            # Check if this theme is NOT in git-tracked list
+            if ! echo "$TRACKED_THEMES" | grep -q "^${THEME_NAME}$"; then
+                rm -rf "$theme_dir"
+                echo -e "  ${GREEN}✓${NC} Removed untracked theme: ${THEME_NAME}"
+                ((REMOVED_COUNT++))
+            fi
+        fi
+    done
+
+    # Remove themes/index.php if it exists and is not tracked
+    if [[ -f "themes/index.php" ]] && ! git ls-files --error-unmatch themes/index.php &>/dev/null; then
+        rm -f themes/index.php
+        echo -e "  ${GREEN}✓${NC} Removed themes/index.php"
+        ((REMOVED_COUNT++))
+    fi
+
+    if [[ $REMOVED_COUNT -eq 0 ]]; then
+        echo -e "  ${YELLOW}No untracked themes to remove${NC}"
+    else
+        echo -e "  ${GREEN}✓${NC} Cleaned $REMOVED_COUNT untracked theme(s)"
+    fi
+else
+    echo -e "  ${YELLOW}themes/ not found${NC}"
+fi
+
+echo ""
+
 # Step 6: Clean database backups
 echo -e "${BLUE}Step 6: Cleaning database backups...${NC}"
 
