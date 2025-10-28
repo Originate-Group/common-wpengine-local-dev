@@ -250,8 +250,8 @@ echo ""
 echo -e "${BLUE}Step 4: Cleaning plugins directory...${NC}"
 
 if [[ -d "plugins" ]]; then
-    # Fix ownership of Docker-created files using Docker itself
-    if ! rm -rf plugins/* 2>/dev/null; then
+    # Always fix ownership first (Docker creates files as www-data)
+    if [[ -n "$(ls -A plugins 2>/dev/null)" ]]; then
         echo -e "  ${YELLOW}Fixing ownership of Docker-created files...${NC}"
         docker run --rm -v "${PROJECT_ROOT}/plugins:/cleanup" alpine chown -R $(id -u):$(id -g) /cleanup 2>/dev/null || true
     fi
@@ -276,8 +276,8 @@ echo ""
 echo -e "${BLUE}Step 5: Removing uploads directory...${NC}"
 
 if [[ -d "uploads" ]]; then
-    # Fix ownership of Docker-created files using Docker itself
-    if ! rm -rf uploads/ 2>/dev/null; then
+    # Always fix ownership first (Docker creates files as www-data)
+    if [[ -n "$(ls -A uploads 2>/dev/null)" ]]; then
         echo -e "  ${YELLOW}Fixing ownership of Docker-created files...${NC}"
         docker run --rm -v "${PROJECT_ROOT}/uploads:/cleanup" alpine chown -R $(id -u):$(id -g) /cleanup 2>/dev/null || true
     fi
@@ -300,8 +300,8 @@ echo ""
 echo -e "${BLUE}Step 5b: Cleaning mu-plugins directory...${NC}"
 
 if [[ -d "mu-plugins" ]]; then
-    # Fix ownership of Docker-created files using Docker itself
-    if ! rm -rf mu-plugins/* 2>/dev/null; then
+    # Always fix ownership first (Docker creates files as www-data)
+    if [[ -n "$(ls -A mu-plugins 2>/dev/null)" ]]; then
         echo -e "  ${YELLOW}Fixing ownership of Docker-created files...${NC}"
         docker run --rm -v "${PROJECT_ROOT}/mu-plugins:/cleanup" alpine chown -R $(id -u):$(id -g) /cleanup 2>/dev/null || true
     fi
@@ -323,8 +323,8 @@ if [[ -d "themes" ]]; then
     # Get list of git-tracked files in themes/ (preserve these)
     TRACKED_THEMES=$(git ls-files themes/ 2>/dev/null | cut -d'/' -f2 | sort -u)
 
-    # Fix ownership first if needed
-    if ! rm -f themes/index.php 2>/dev/null; then
+    # Always fix ownership first (Docker creates files as www-data)
+    if [[ -n "$(ls -A themes 2>/dev/null)" ]]; then
         echo -e "  ${YELLOW}Fixing ownership of Docker-created files...${NC}"
         docker run --rm -v "${PROJECT_ROOT}/themes:/cleanup" alpine chown -R $(id -u):$(id -g) /cleanup 2>/dev/null || true
     fi
