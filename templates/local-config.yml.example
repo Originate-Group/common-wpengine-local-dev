@@ -93,8 +93,8 @@ sync:
   # Sync plugins from WP Engine
   plugins: true
 
-  # Sync uploads/media from WP Engine (can be LARGE!)
-  uploads: false
+  # Sync uploads/media from WP Engine (required for images to load)
+  uploads: true
 
   # Replace production URLs with local URLs during database import
   url_replacement: true
