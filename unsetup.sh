@@ -246,8 +246,8 @@ fi
 
 echo ""
 
-# Step 4: Clean plugins directory
-echo -e "${BLUE}Step 4: Cleaning plugins directory...${NC}"
+# Step 4: Remove plugins directory
+echo -e "${BLUE}Step 4: Removing plugins directory...${NC}"
 
 if [[ -d "plugins" ]]; then
     # Always fix ownership first (Docker creates files as www-data)
@@ -256,16 +256,14 @@ if [[ -d "plugins" ]]; then
         docker run --rm -v "${PROJECT_ROOT}/plugins:/cleanup" alpine chown -R $(id -u):$(id -g) /cleanup 2>/dev/null || true
     fi
 
-    # Now remove everything
-    rm -rf plugins/*
+    # Remove entire directory
+    rm -rf plugins/
 
-    # Recreate index.php
-    if [[ ! -f "plugins/index.php" ]]; then
-        echo "<?php" > plugins/index.php
-        echo "// Silence is golden." >> plugins/index.php
+    if [[ ! -d "plugins" ]]; then
+        echo -e "  ${GREEN}✓${NC} Removed plugins/"
+    else
+        echo -e "  ${RED}✗${NC} Failed to remove plugins/"
     fi
-
-    echo -e "  ${GREEN}✓${NC} Cleaned plugins/"
 else
     echo -e "  ${YELLOW}plugins/ not found${NC}"
 fi
@@ -296,8 +294,8 @@ fi
 
 echo ""
 
-# Step 5b: Clean mu-plugins directory
-echo -e "${BLUE}Step 5b: Cleaning mu-plugins directory...${NC}"
+# Step 5b: Remove mu-plugins directory
+echo -e "${BLUE}Step 5b: Removing mu-plugins directory...${NC}"
 
 if [[ -d "mu-plugins" ]]; then
     # Always fix ownership first (Docker creates files as www-data)
@@ -306,10 +304,14 @@ if [[ -d "mu-plugins" ]]; then
         docker run --rm -v "${PROJECT_ROOT}/mu-plugins:/cleanup" alpine chown -R $(id -u):$(id -g) /cleanup 2>/dev/null || true
     fi
 
-    # Now remove everything
-    rm -rf mu-plugins/*
+    # Remove entire directory
+    rm -rf mu-plugins/
 
-    echo -e "  ${GREEN}✓${NC} Cleaned mu-plugins/"
+    if [[ ! -d "mu-plugins" ]]; then
+        echo -e "  ${GREEN}✓${NC} Removed mu-plugins/"
+    else
+        echo -e "  ${RED}✗${NC} Failed to remove mu-plugins/"
+    fi
 else
     echo -e "  ${YELLOW}mu-plugins/ not found${NC}"
 fi
