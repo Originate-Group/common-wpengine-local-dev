@@ -251,7 +251,11 @@ echo -e "${BLUE}Step 4: Cleaning plugins directory...${NC}"
 
 if [[ -d "plugins" ]]; then
     # Remove everything except index.php and Git-tracked files
-    find plugins -mindepth 1 ! -name 'index.php' ! -path '*/\.*' -exec rm -rf {} + 2>/dev/null || true
+    # Use sudo if needed for Docker-owned files
+    if ! find plugins -mindepth 1 ! -name 'index.php' ! -path '*/\.*' -exec rm -rf {} + 2>/dev/null; then
+        echo -e "  ${YELLOW}Need elevated permissions to remove Docker-owned files...${NC}"
+        sudo -n rm -rf plugins/* 2>/dev/null || sudo rm -rf plugins/*
+    fi
 
     # Recreate index.php if it was removed
     if [[ ! -f "plugins/index.php" ]]; then
@@ -270,8 +274,17 @@ echo ""
 echo -e "${BLUE}Step 5: Removing uploads directory...${NC}"
 
 if [[ -d "uploads" ]]; then
-    rm -rf uploads/
-    echo -e "  ${GREEN}✓${NC} Removed uploads/"
+    # Try normal removal first, use sudo if it fails (Docker-owned files)
+    if ! rm -rf uploads/ 2>/dev/null; then
+        echo -e "  ${YELLOW}Need elevated permissions to remove Docker-owned files...${NC}"
+        sudo -n rm -rf uploads/ 2>/dev/null || sudo rm -rf uploads/
+    fi
+
+    if [[ ! -d "uploads" ]]; then
+        echo -e "  ${GREEN}✓${NC} Removed uploads/"
+    else
+        echo -e "  ${RED}✗${NC} Failed to remove uploads/"
+    fi
 else
     echo -e "  ${YELLOW}uploads/ not found${NC}"
 fi
