@@ -37,6 +37,7 @@ services:
         define('WP_DEBUG_LOG', true);
         define('WP_DEBUG_DISPLAY', false);
     volumes:
+      - wordpress_core:/var/www/html
       - ${PROJECT_ROOT}/plugins:/var/www/html/wp-content/plugins
       - ${PROJECT_ROOT}/themes:/var/www/html/wp-content/themes
       - ${PROJECT_ROOT}/mu-plugins:/var/www/html/wp-content/mu-plugins
@@ -77,6 +78,7 @@ services:
       WORDPRESS_DB_USER: ${DB_USER}
       WORDPRESS_DB_PASSWORD: ${DB_PASSWORD}
     volumes:
+      - wordpress_core:/var/www/html
       - ${PROJECT_ROOT}/plugins:/var/www/html/wp-content/plugins
       - ${PROJECT_ROOT}/themes:/var/www/html/wp-content/themes
       - ${PROJECT_ROOT}/mu-plugins:/var/www/html/wp-content/mu-plugins
@@ -93,3 +95,5 @@ networks:
 volumes:
   db_data:
     name: ${PROJECT_NAME}-db-data
+  wordpress_core:
+    name: ${PROJECT_NAME}-wordpress-core
