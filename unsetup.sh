@@ -99,13 +99,13 @@ if [[ -d "uploads" ]]; then
 fi
 
 if [[ -n "$PROJECT_NAME" ]]; then
-    CONTAINER_COUNT=$(docker ps -a --format '{{.Names}}' | grep -c "^${PROJECT_NAME}-" || echo "0")
+    CONTAINER_COUNT=$(docker ps -a --format '{{.Names}}' | grep "^${PROJECT_NAME}-" | wc -l)
     if [[ $CONTAINER_COUNT -gt 0 ]]; then
         echo -e "  ${YELLOW}- Docker containers (${CONTAINER_COUNT}):${NC}"
         docker ps -a --format '  {{.Names}}' | grep "^${PROJECT_NAME}-" | sed 's/^/    /'
     fi
 
-    VOLUME_COUNT=$(docker volume ls --format '{{.Name}}' | grep -c "^${PROJECT_NAME}-" || echo "0")
+    VOLUME_COUNT=$(docker volume ls --format '{{.Name}}' | grep "^${PROJECT_NAME}-" | wc -l)
     if [[ $VOLUME_COUNT -gt 0 ]]; then
         echo -e "  ${YELLOW}- Docker volumes (${VOLUME_COUNT}):${NC}"
         docker volume ls --format '  {{.Name}}' | grep "^${PROJECT_NAME}-" | sed 's/^/    /'
@@ -292,6 +292,26 @@ if [[ -d "uploads" ]]; then
     fi
 else
     echo -e "  ${YELLOW}uploads/ not found${NC}"
+fi
+
+echo ""
+
+# Step 5b: Clean mu-plugins directory
+echo -e "${BLUE}Step 5b: Cleaning mu-plugins directory...${NC}"
+
+if [[ -d "mu-plugins" ]]; then
+    # Fix ownership of Docker-created files using Docker itself
+    if ! rm -rf mu-plugins/* 2>/dev/null; then
+        echo -e "  ${YELLOW}Fixing ownership of Docker-created files...${NC}"
+        docker run --rm -v "${PROJECT_ROOT}/mu-plugins:/cleanup" alpine chown -R $(id -u):$(id -g) /cleanup 2>/dev/null || true
+    fi
+
+    # Now remove everything
+    rm -rf mu-plugins/*
+
+    echo -e "  ${GREEN}✓${NC} Cleaned mu-plugins/"
+else
+    echo -e "  ${YELLOW}mu-plugins/ not found${NC}"
 fi
 
 echo ""
