@@ -156,12 +156,16 @@ if [[ "$SYNC_URL_REPLACEMENT" == "true" ]]; then
         echo -e "  Local URL: ${SITE_URL}"
 
         # Use WP-CLI for URL replacement (handles serialized data correctly)
-        docker exec "${PROJECT_NAME}-wpcli" wp search-replace "$PROD_URL" "$SITE_URL" \
+        if docker exec "${PROJECT_NAME}-wpcli" wp search-replace "$PROD_URL" "$SITE_URL" \
             --skip-columns=guid \
-            --quiet \
-            --allow-root 2>/dev/null || true
-
-        echo -e "${GREEN}✓ URLs replaced${NC}"
+            --allow-root; then
+            echo -e "${GREEN}✓ URLs replaced successfully${NC}"
+        else
+            echo -e "${RED}✗ URL replacement FAILED${NC}"
+            echo -e "${YELLOW}This is a CRITICAL error - WordPress will redirect to production${NC}"
+            echo -e "${YELLOW}Verify wp-config.php exists and WP-CLI can access WordPress${NC}"
+            exit 1
+        fi
     else
         echo -e "${YELLOW}⚠ Could not detect production URL, skipping replacement${NC}"
     fi
