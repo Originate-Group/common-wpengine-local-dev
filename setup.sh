@@ -203,6 +203,9 @@ echo -e "${BLUE}Waiting for MySQL to be ready...${NC}"
 MAX_WAIT=30
 WAIT_COUNT=0
 
+# Add initial delay for MySQL initialization
+sleep 2
+
 while [[ $WAIT_COUNT -lt $MAX_WAIT ]]; do
     if docker exec "${PROJECT_NAME}-mysql" mysqladmin ping -h localhost -u root -p"${DB_ROOT_PASSWORD}" &> /dev/null; then
         echo -e "${GREEN}✓ MySQL is ready${NC}"
@@ -214,7 +217,8 @@ while [[ $WAIT_COUNT -lt $MAX_WAIT ]]; do
 done
 
 if [[ $WAIT_COUNT -ge $MAX_WAIT ]]; then
-    echo -e "${RED}✗ MySQL failed to start${NC}"
+    echo -e "${RED}✗ MySQL failed to start (waited ${MAX_WAIT} seconds)${NC}"
+    echo -e "${YELLOW}Debug: PROJECT_NAME=${PROJECT_NAME}, DB_ROOT_PASSWORD is ${#DB_ROOT_PASSWORD} chars${NC}"
     exit 1
 fi
 
