@@ -200,7 +200,19 @@ echo -e "${GREEN}✓ Cache cleared${NC}"
 
 echo ""
 
-# Step 7: Cleanup backup file (optional)
+# Step 7: Create test admin user
+echo -e "${BLUE}Step 7: Creating test admin user...${NC}"
+
+docker exec "${PROJECT_NAME}-wpcli" wp user create testAdmin test@example.com \
+    --role=administrator \
+    --user_pass=adminADMIN \
+    --allow-root 2>/dev/null || true
+
+echo -e "${GREEN}✓ Test admin user created (testAdmin / adminADMIN)${NC}"
+
+echo ""
+
+# Step 8: Cleanup backup file (optional)
 read -p "$(echo -e ${YELLOW}Delete local backup file? [y/N]: ${NC})" -n 1 -r
 echo
 if [[ $REPLY =~ ^[Yy]$ ]]; then
