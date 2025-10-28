@@ -246,6 +246,27 @@ else
     echo -e "${GREEN}✓ WordPress core already installed${NC}"
 fi
 
+# Create wp-config.php if it doesn't exist
+if ! docker exec "${PROJECT_NAME}-wordpress" test -f /var/www/html/wp-config.php 2>/dev/null; then
+    echo -e "${YELLOW}Creating wp-config.php...${NC}"
+
+    docker exec "${PROJECT_NAME}-wpcli" wp config create \
+        --dbname="${DB_NAME}" \
+        --dbuser="${DB_USER}" \
+        --dbpass="${DB_PASSWORD}" \
+        --dbhost="${PROJECT_NAME}-mysql" \
+        --allow-root
+
+    if [[ $? -eq 0 ]]; then
+        echo -e "${GREEN}✓ wp-config.php created${NC}"
+    else
+        echo -e "${RED}✗ Failed to create wp-config.php${NC}"
+        exit 1
+    fi
+else
+    echo -e "${GREEN}✓ wp-config.php already exists${NC}"
+fi
+
 echo ""
 
 # Step 7: Sync data from WP Engine
